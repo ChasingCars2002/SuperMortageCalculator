@@ -65,7 +65,6 @@ form.addEventListener("submit", (e) => {
 
     // --- Render totals ---
     set("r-dp",        fmt(m.downPayment));
-    set("r-loan",      fmt(m.loanAmount));
     set("r-principal", fmt(m.totalPrincipal));
     set("r-interest",  fmt(m.totalInterest));
     set("r-total",     fmt(m.totalPaid));
