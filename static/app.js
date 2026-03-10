@@ -1,4 +1,4 @@
-/* Super Mortgage Calculator — Frontend Logic */
+/* Super Mortgage Calculator — UI Logic (client-side only, no server needed) */
 
 const form = document.getElementById("calc-form");
 const resultsDiv = document.getElementById("results");
@@ -19,96 +19,91 @@ function set(id, value) {
 function colorSign(id, value) {
   const el = document.getElementById(id);
   el.classList.remove("positive", "negative");
-  if (value >= 0) el.classList.add("positive");
-  else el.classList.add("negative");
+  el.classList.add(value >= 0 ? "positive" : "negative");
 }
 
-form.addEventListener("submit", async (e) => {
+form.addEventListener("submit", (e) => {
   e.preventDefault();
   errorBox.classList.add("hidden");
   resultsDiv.classList.add("hidden");
 
-  const payload = {
-    home_price: parseFloat(document.getElementById("home_price").value),
-    down_payment_pct: parseFloat(document.getElementById("down_payment_pct").value),
-    loan_term_years: parseInt(document.getElementById("loan_term_years").value),
-    annual_interest_rate: parseFloat(document.getElementById("annual_interest_rate").value),
-    annual_property_tax: parseFloat(document.getElementById("annual_property_tax").value || 0),
-    annual_homeowners_insurance: parseFloat(document.getElementById("annual_homeowners_insurance").value || 0),
-    monthly_hoa: parseFloat(document.getElementById("monthly_hoa").value || 0),
-    pmi_annual_rate: parseFloat(document.getElementById("pmi_annual_rate").value || 0),
-    zip_code: document.getElementById("zip_code").value.trim(),
-    monthly_rent: parseFloat(document.getElementById("monthly_rent").value || 0),
-    spy_return: parseFloat(document.getElementById("spy_return").value || 10),
-  };
-
-  let data;
   try {
-    const resp = await fetch("/api/calculate", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
+    const mortgageInputs = {
+      homePrice: parseFloat(document.getElementById("home_price").value),
+      downPaymentPct: parseFloat(document.getElementById("down_payment_pct").value),
+      loanTermYears: parseInt(document.getElementById("loan_term_years").value),
+      annualInterestRate: parseFloat(document.getElementById("annual_interest_rate").value),
+      annualPropertyTax: parseFloat(document.getElementById("annual_property_tax").value || 0),
+      annualHomeownersInsurance: parseFloat(document.getElementById("annual_homeowners_insurance").value || 0),
+      monthlyHoa: parseFloat(document.getElementById("monthly_hoa").value || 0),
+      pmiAnnualRate: parseFloat(document.getElementById("pmi_annual_rate").value || 0),
+    };
+
+    const zip = document.getElementById("zip_code").value.trim();
+    const monthlyRent = parseFloat(document.getElementById("monthly_rent").value || 0);
+    const spyReturn = parseFloat(document.getElementById("spy_return").value || 10);
+
+    // All calculations run client-side via calculator.js
+    const m = calculateMortgage(mortgageInputs);
+    const a = calculateAppreciation(mortgageInputs.homePrice, zip, m.totalPaid);
+    const snapshots = calculateRentVsBuy({
+      monthlyRent,
+      monthlyMortgagePITI: m.monthlyPITI,
+      downPayment: m.downPayment,
+      spyAnnualReturn: spyReturn,
+      loanTermYears: mortgageInputs.loanTermYears,
     });
-    data = await resp.json();
-    if (!resp.ok) throw new Error(data.error || "Server error");
+
+    // --- Render PITI ---
+    set("r-pi",   fmt(m.monthlyPI));
+    set("r-tax",  fmt(m.monthlyTax));
+    set("r-ins",  fmt(m.monthlyIns));
+    set("r-hoa",  fmt(m.monthlyHoa));
+    set("r-pmi",  fmt(m.monthlyPMI));
+    set("r-piti", fmt(m.monthlyPITI));
+    document.getElementById("pmi-row").style.display = m.pmiRequired ? "" : "none";
+
+    // --- Render totals ---
+    set("r-dp",        fmt(m.downPayment));
+    set("r-loan",      fmt(m.loanAmount));
+    set("r-principal", fmt(m.totalPrincipal));
+    set("r-interest",  fmt(m.totalInterest));
+    set("r-total",     fmt(m.totalPaid));
+
+    // --- Render appreciation ---
+    set("r-zip",    a.zip);
+    set("r-cagr",   fmtPct(a.cagrPct));
+    set("r-hv-now", fmt(a.currentValue));
+    set("r-hv-30",  fmt(a.futureValue30yr));
+
+    document.getElementById("r-net").textContent =
+      (a.netGainOrLoss >= 0 ? "+" : "") + fmt(a.netGainOrLoss);
+    colorSign("r-net", a.netGainOrLoss);
+
+    document.getElementById("r-roi").textContent =
+      (a.roiPct >= 0 ? "+" : "") + fmtPct(a.roiPct);
+    colorSign("r-roi", a.roiPct);
+
+    // --- Render Rent vs Buy table ---
+    const tbody = document.getElementById("r-rvb-body");
+    tbody.innerHTML = "";
+    snapshots.forEach(row => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>Year ${row.year}</td>
+        <td>${fmt(row.monthlyRent)}</td>
+        <td>${fmt(row.monthlyMortgage)}</td>
+        <td>${fmt(row.monthlyInvestment)}</td>
+        <td><strong>${fmt(row.portfolioValue)}</strong></td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    resultsDiv.classList.remove("hidden");
+    resultsDiv.scrollIntoView({ behavior: "smooth", block: "start" });
+
   } catch (err) {
     errorBox.textContent = "Error: " + err.message;
     errorBox.classList.remove("hidden");
-    return;
   }
-
-  const m = data.mortgage;
-  const a = data.appreciation;
-  const rvb = data.rent_vs_buy;
-
-  // PITI breakdown
-  set("r-pi",       fmt(m.monthly_principal_interest));
-  set("r-tax",      fmt(m.monthly_property_tax));
-  set("r-ins",      fmt(m.monthly_insurance));
-  set("r-hoa",      fmt(m.monthly_hoa));
-  set("r-pmi",      fmt(m.monthly_pmi));
-  set("r-piti",     fmt(m.monthly_piti));
-
-  // Show/hide PMI row
-  const pmiRow = document.getElementById("pmi-row");
-  pmiRow.style.display = m.pmi_required ? "" : "none";
-
-  // Total cost
-  set("r-dp",        fmt(m.down_payment));
-  set("r-loan",      fmt(m.loan_amount));
-  set("r-principal", fmt(m.total_principal));
-  set("r-interest",  fmt(m.total_interest));
-  set("r-total",     fmt(m.total_paid));
-
-  // Appreciation
-  set("r-zip",     a.zip_code);
-  set("r-cagr",    fmtPct(a.cagr_pct));
-  set("r-hv-now",  fmt(a.current_value));
-  set("r-hv-30",   fmt(a.future_value_30yr));
-
-  const netEl = document.getElementById("r-net");
-  netEl.textContent = (a.net_gain_or_loss >= 0 ? "+" : "") + fmt(a.net_gain_or_loss);
-  colorSign("r-net", a.net_gain_or_loss);
-
-  const roiEl = document.getElementById("r-roi");
-  roiEl.textContent = (a.roi_pct >= 0 ? "+" : "") + fmtPct(a.roi_pct);
-  colorSign("r-roi", a.roi_pct);
-
-  // Rent vs Buy table
-  const tbody = document.getElementById("r-rvb-body");
-  tbody.innerHTML = "";
-  rvb.forEach(row => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>Year ${row.year}</td>
-      <td>${fmt(row.monthly_rent)}</td>
-      <td>${fmt(row.monthly_mortgage)}</td>
-      <td>${fmt(row.monthly_investment)}</td>
-      <td><strong>${fmt(row.portfolio_value)}</strong></td>
-    `;
-    tbody.appendChild(tr);
-  });
-
-  resultsDiv.classList.remove("hidden");
-  resultsDiv.scrollIntoView({ behavior: "smooth", block: "start" });
 });
