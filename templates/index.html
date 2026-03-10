@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Super Mortgage Calculator</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <header>
+    <h1>Super Mortgage Calculator</h1>
+    <p class="subtitle">Amortization &bull; Real Estate Appreciation &bull; Rent vs. Buy Analysis</p>
+  </header>
+
+  <main>
+    <form id="calc-form">
+
+      <!-- SECTION: Mortgage -->
+      <section class="card">
+        <h2>Mortgage Details</h2>
+        <div class="grid-2">
+          <label>
+            Home Price ($)
+            <input type="number" id="home_price" value="500000" min="0" required />
+          </label>
+          <label>
+            Down Payment (%)
+            <input type="number" id="down_payment_pct" value="20" min="0" max="100" step="0.1" required />
+          </label>
+          <label>
+            Loan Term (years)
+            <input type="number" id="loan_term_years" value="30" min="1" max="50" required />
+          </label>
+          <label>
+            Annual Interest Rate (%)
+            <input type="number" id="annual_interest_rate" value="6.5" min="0" step="0.01" required />
+          </label>
+          <label>
+            Annual Property Tax ($)
+            <input type="number" id="annual_property_tax" value="6000" min="0" />
+          </label>
+          <label>
+            Annual Homeowners Insurance ($)
+            <input type="number" id="annual_homeowners_insurance" value="1500" min="0" />
+          </label>
+          <label>
+            Monthly HOA ($)
+            <input type="number" id="monthly_hoa" value="250" min="0" />
+          </label>
+          <label>
+            PMI Annual Rate (%, if &lt; 20% down)
+            <input type="number" id="pmi_annual_rate" value="0.5" min="0" step="0.01" />
+          </label>
+        </div>
+      </section>
+
+      <!-- SECTION: Appreciation -->
+      <section class="card">
+        <h2>Real Estate Appreciation</h2>
+        <div class="grid-2">
+          <label>
+            Property ZIP Code
+            <input type="text" id="zip_code" value="78701" maxlength="10" />
+          </label>
+        </div>
+        <p class="hint">ZIP codes with known CAGR data: 94105, 10001, 60601, 33101, 98101, 78701, 30301, 02101, 80202, 85001.
+        All others default to 4.0% national average.</p>
+      </section>
+
+      <!-- SECTION: Rent vs Buy -->
+      <section class="card">
+        <h2>Rent vs. Buy Analysis</h2>
+        <div class="grid-2">
+          <label>
+            Current Monthly Rent ($)
+            <input type="number" id="monthly_rent" value="2000" min="0" />
+          </label>
+          <label>
+            Expected S&amp;P 500 Annual Return (%)
+            <input type="number" id="spy_return" value="10" min="0" step="0.1" />
+          </label>
+        </div>
+        <p class="hint">Rent increases 2% every 3 years. Down payment + monthly difference vs. rent invested in SPY.</p>
+      </section>
+
+      <button type="submit" id="submit-btn">Calculate</button>
+    </form>
+
+    <!-- RESULTS -->
+    <div id="results" class="hidden">
+
+      <section class="card result-card">
+        <h2>Monthly Payment Breakdown (PITI)</h2>
+        <table class="breakdown-table">
+          <tbody>
+            <tr><td>Principal &amp; Interest</td><td id="r-pi"></td></tr>
+            <tr><td>Property Tax</td><td id="r-tax"></td></tr>
+            <tr><td>Homeowners Insurance</td><td id="r-ins"></td></tr>
+            <tr><td>HOA</td><td id="r-hoa"></td></tr>
+            <tr class="pmi-row" id="pmi-row"><td>PMI</td><td id="r-pmi"></td></tr>
+            <tr class="total-row"><td>Total Monthly Payment</td><td id="r-piti"></td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="card result-card">
+        <h2>Total Cost Summary</h2>
+        <table class="breakdown-table">
+          <tbody>
+            <tr><td>Down Payment</td><td id="r-dp"></td></tr>
+            <tr><td>Loan Amount</td><td id="r-loan"></td></tr>
+            <tr><td>Total Principal Paid</td><td id="r-principal"></td></tr>
+            <tr><td>Total Interest Paid</td><td id="r-interest"></td></tr>
+            <tr class="total-row"><td>Total Cost of Ownership</td><td id="r-total"></td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="card result-card">
+        <h2>Real Estate Appreciation Projection</h2>
+        <table class="breakdown-table">
+          <tbody>
+            <tr><td>ZIP Code</td><td id="r-zip"></td></tr>
+            <tr><td>5-Year CAGR</td><td id="r-cagr"></td></tr>
+            <tr><td>Current Home Value</td><td id="r-hv-now"></td></tr>
+            <tr><td>Estimated Value in 30 Years</td><td id="r-hv-30"></td></tr>
+            <tr><td>Net Gain / (Loss) vs. Cost</td><td id="r-net"></td></tr>
+            <tr class="total-row"><td>Real Estate ROI</td><td id="r-roi"></td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="card result-card">
+        <h2>Rent vs. Buy — SPY Portfolio Schedule</h2>
+        <p class="hint">Assumes down payment invested at Year 0. Monthly difference (mortgage − rent) invested each month.</p>
+        <table class="schedule-table">
+          <thead>
+            <tr>
+              <th>Year</th>
+              <th>Rent/mo</th>
+              <th>Mortgage/mo</th>
+              <th>Investing/mo</th>
+              <th>SPY Portfolio Value</th>
+            </tr>
+          </thead>
+          <tbody id="r-rvb-body"></tbody>
+        </table>
+      </section>
+
+    </div>
+
+    <div id="error-box" class="hidden error-box"></div>
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
