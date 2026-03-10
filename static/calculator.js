@@ -75,7 +75,7 @@ function calculateMortgage(inputs) {
     const interest = +(balance * monthlyRate).toFixed(2);
     let principalPart = +(monthlyPI - interest).toFixed(2);
     if (month === nPayments) {
-      principalPart = +(principalPart + balance).toFixed(2);
+      principalPart = +balance.toFixed(2);
       balance = 0;
     } else {
       balance = +(balance - principalPart).toFixed(2);
