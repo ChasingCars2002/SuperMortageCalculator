@@ -115,7 +115,7 @@ def calculate_mortgage(inputs: MortgageInputs) -> MortgageResult:
     monthly_pmi = round((inputs.pmi_annual_rate / 100.0) * P / 12.0, 2) if inputs.pmi_required else 0.0
 
     monthly_piti = round(monthly_pi + monthly_tax + monthly_ins + monthly_hoa + monthly_pmi, 2)
-    total_paid = round(monthly_piti * n + inputs.down_payment_amount, 2)
+    total_paid = round(inputs.down_payment_amount + total_principal + total_interest, 2)
 
     return MortgageResult(
         monthly_principal_interest=monthly_pi,

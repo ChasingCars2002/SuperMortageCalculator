@@ -88,7 +88,7 @@ function calculateMortgage(inputs) {
   totalPrincipal = +totalPrincipal.toFixed(2);
 
   const monthlyPITI = +(monthlyPI + monthlyTax + monthlyIns + monthlyHoa + monthlyPMI).toFixed(2);
-  const totalPaid = +(monthlyPITI * nPayments + downPayment).toFixed(2);
+  const totalPaid = +(downPayment + totalPrincipal + totalInterest).toFixed(2);
 
   return {
     downPayment: +downPayment.toFixed(2),
