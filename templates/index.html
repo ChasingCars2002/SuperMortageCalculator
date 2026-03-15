@@ -8,8 +8,8 @@
 </head>
 <body>
   <header>
-    <h1>Super Mortgage Calculator</h1>
-    <p class="subtitle">Amortization &bull; Real Estate Appreciation &bull; Rent vs. Buy Analysis</p>
+    <h1>Super <span>Mortgage</span> Calculator</h1>
+    <p class="subtitle">Amortization &middot; Appreciation &middot; Rent vs. Buy</p>
   </header>
 
   <main>
@@ -63,8 +63,7 @@
             <input type="text" id="zip_code" value="78701" maxlength="10" />
           </label>
         </div>
-        <p class="hint">ZIP codes with known CAGR data: 94105, 10001, 60601, 33101, 98101, 78701, 30301, 02101, 80202, 85001.
-        All others default to 4.0% national average.</p>
+        <p class="hint">200+ ZIP codes with CAGR data across major US metros including NYC, LA, SF, Chicago, Miami, Seattle, Austin, Denver, Boston, Atlanta, Dallas, Houston, Phoenix, Portland, Nashville, DC, San Diego, Philadelphia, Minneapolis, Tampa, Raleigh, Salt Lake City, and Las Vegas. All others default to 4.0% national average.</p>
       </section>
 
       <!-- SECTION: Rent vs Buy -->
@@ -108,9 +107,12 @@
         <table class="breakdown-table">
           <tbody>
             <tr><td>Down Payment</td><td id="r-dp"></td></tr>
-            <tr><td>Loan Amount</td><td id="r-loan"></td></tr>
             <tr><td>Total Principal Paid</td><td id="r-principal"></td></tr>
             <tr><td>Total Interest Paid</td><td id="r-interest"></td></tr>
+            <tr><td>Total Property Tax</td><td id="r-total-tax"></td></tr>
+            <tr><td>Total Insurance</td><td id="r-total-ins"></td></tr>
+            <tr><td>Total HOA</td><td id="r-total-hoa"></td></tr>
+            <tr id="pmi-total-row"><td>Total PMI</td><td id="r-total-pmi"></td></tr>
             <tr class="total-row"><td>Total Cost of Ownership</td><td id="r-total"></td></tr>
           </tbody>
         </table>
@@ -152,7 +154,8 @@
     <div id="error-box" class="hidden error-box"></div>
   </main>
 
-    <script src="/static/calculator.js"></script>
+  <script src="/static/cagr-data.js"></script>
+  <script src="/static/calculator.js"></script>
   <script src="/static/app.js"></script>
 </body>
 </html>

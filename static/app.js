@@ -65,10 +65,14 @@ form.addEventListener("submit", (e) => {
 
     // --- Render totals ---
     set("r-dp",        fmt(m.downPayment));
-    set("r-loan",      fmt(m.loanAmount));
     set("r-principal", fmt(m.totalPrincipal));
     set("r-interest",  fmt(m.totalInterest));
+    set("r-total-tax", fmt(m.totalTax));
+    set("r-total-ins", fmt(m.totalInsurance));
+    set("r-total-hoa", fmt(m.totalHoa));
+    set("r-total-pmi", fmt(m.totalPMI));
     set("r-total",     fmt(m.totalPaid));
+    document.getElementById("pmi-total-row").style.display = m.pmiRequired ? "" : "none";
 
     // --- Render appreciation ---
     set("r-zip",    a.zip);
