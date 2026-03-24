@@ -22,10 +22,78 @@ function colorSign(id, value) {
   el.classList.add(value >= 0 ? "positive" : "negative");
 }
 
-form.addEventListener("submit", (e) => {
-  e.preventDefault();
+/* --- Slider sync --- */
+const sliderPairs = [
+  { input: "home_price", slider: "home_price_slider" },
+  { input: "down_payment_pct", slider: "down_payment_pct_slider" },
+  { input: "loan_term_years", slider: "loan_term_years_slider" },
+  { input: "annual_interest_rate", slider: "annual_interest_rate_slider" },
+];
+
+sliderPairs.forEach(({ input, slider }) => {
+  const inputEl = document.getElementById(input);
+  const sliderEl = document.getElementById(slider);
+  if (!inputEl || !sliderEl) return;
+
+  sliderEl.addEventListener("input", () => {
+    inputEl.value = sliderEl.value;
+    debouncedCalc();
+  });
+
+  inputEl.addEventListener("input", () => {
+    const v = parseFloat(inputEl.value);
+    if (!isNaN(v)) sliderEl.value = v;
+  });
+});
+
+/* --- Dark mode toggle --- */
+const themeToggle = document.getElementById("theme-toggle");
+
+function applyTheme(dark) {
+  document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
+  localStorage.setItem("theme", dark ? "dark" : "light");
+}
+
+// Init theme: respect localStorage, then system preference
+(function initTheme() {
+  const stored = localStorage.getItem("theme");
+  if (stored) {
+    applyTheme(stored === "dark");
+  } else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+    applyTheme(true);
+  }
+})();
+
+themeToggle.addEventListener("click", () => {
+  const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+  applyTheme(!isDark);
+});
+
+/* --- Debounced real-time calculation --- */
+let debounceTimer = null;
+
+function debouncedCalc() {
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(runCalculation, 300);
+}
+
+// Listen for input changes on all form fields
+form.querySelectorAll("input").forEach(input => {
+  input.addEventListener("input", debouncedCalc);
+});
+
+/* --- Chart colors --- */
+const CHART_COLORS = {
+  pi: "#6366f1",
+  tax: "#f59e0b",
+  ins: "#10b981",
+  hoa: "#8b5cf6",
+  pmi: "#ef4444",
+};
+
+/* --- Main calculation --- */
+function runCalculation() {
   errorBox.classList.add("hidden");
-  resultsDiv.classList.add("hidden");
 
   try {
     const mortgageInputs = {
@@ -42,6 +110,10 @@ form.addEventListener("submit", (e) => {
     const zip = document.getElementById("zip_code").value.trim();
     const monthlyRent = parseFloat(document.getElementById("monthly_rent").value || 0);
     const spyReturn = parseFloat(document.getElementById("spy_return").value || 10);
+
+    // Validate
+    if (isNaN(mortgageInputs.homePrice) || mortgageInputs.homePrice <= 0) return;
+    if (isNaN(mortgageInputs.loanTermYears) || mortgageInputs.loanTermYears < 1) return;
 
     // All calculations run client-side via calculator.js
     const m = calculateMortgage(mortgageInputs);
@@ -62,6 +134,19 @@ form.addEventListener("submit", (e) => {
     set("r-pmi",  fmt(m.monthlyPMI));
     set("r-piti", fmt(m.monthlyPITI));
     document.getElementById("pmi-row").style.display = m.pmiRequired ? "" : "none";
+
+    // --- Render donut chart ---
+    const segments = [
+      { label: "Principal & Interest", value: m.monthlyPI, color: CHART_COLORS.pi },
+      { label: "Property Tax", value: m.monthlyTax, color: CHART_COLORS.tax },
+      { label: "Insurance", value: m.monthlyIns, color: CHART_COLORS.ins },
+      { label: "HOA", value: m.monthlyHoa, color: CHART_COLORS.hoa },
+    ];
+    if (m.pmiRequired) {
+      segments.push({ label: "PMI", value: m.monthlyPMI, color: CHART_COLORS.pmi });
+    }
+    drawDonut("piti-donut", segments, { size: 180 });
+    renderLegend("piti-legend", segments);
 
     // --- Render totals ---
     set("r-dp",        fmt(m.downPayment));
@@ -104,10 +189,16 @@ form.addEventListener("submit", (e) => {
     });
 
     resultsDiv.classList.remove("hidden");
-    resultsDiv.scrollIntoView({ behavior: "smooth", block: "start" });
 
   } catch (err) {
     errorBox.textContent = "Error: " + err.message;
     errorBox.classList.remove("hidden");
   }
+}
+
+/* --- Form submit (button click / Enter) --- */
+form.addEventListener("submit", (e) => {
+  e.preventDefault();
+  runCalculation();
+  resultsDiv.scrollIntoView({ behavior: "smooth", block: "start" });
 });
