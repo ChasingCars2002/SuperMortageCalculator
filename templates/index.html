@@ -56,6 +56,13 @@
             </div>
           </label>
           <label>
+            Extra Monthly Principal ($)
+            <input type="number" id="extra_monthly_payment" value="0" min="0" step="50" />
+            <div class="slider-row">
+              <input type="range" id="extra_monthly_payment_slider" min="0" max="3000" step="50" value="0" aria-label="Extra monthly principal slider" />
+            </div>
+          </label>
+          <label>
             Annual Property Tax ($)
             <input type="number" id="annual_property_tax" value="6000" min="0" />
           </label>
@@ -68,10 +75,11 @@
             <input type="number" id="monthly_hoa" value="250" min="0" />
           </label>
           <label>
-            <span class="tip" data-tip="Private Mortgage Insurance — required when down payment is less than 20%" tabindex="0">PMI</span> Annual Rate (%, if &lt; 20% down)
+            <span class="tip" data-tip="Private Mortgage Insurance — required when down payment is less than 20%. Automatically cancels once the loan is paid down to 78% of the original home value." tabindex="0">PMI</span> Annual Rate (%, if &lt; 20% down)
             <input type="number" id="pmi_annual_rate" value="0.5" min="0" step="0.01" />
           </label>
         </div>
+        <p class="hint">PMI automatically drops off when the loan balance reaches 78% of the original home value. Extra principal payments shorten the loan and reduce total interest.</p>
       </section>
 
       <!-- SECTION: Appreciation -->
@@ -98,8 +106,16 @@
             Expected S&amp;P 500 Annual Return (%)
             <input type="number" id="spy_return" value="10" min="0" step="0.1" />
           </label>
+          <label>
+            Annual Rent Increase (%)
+            <input type="number" id="annual_rent_increase" value="3" min="0" step="0.1" />
+          </label>
+          <label>
+            Home <span class="tip" data-tip="Realtor commissions and closing costs paid when selling — typically 6-8% of sale price" tabindex="0">Sale Cost</span> (%)
+            <input type="number" id="sale_cost_pct" value="6" min="0" max="20" step="0.5" />
+          </label>
         </div>
-        <p class="hint">Rent increases 2% every 3 years. Down payment + monthly difference vs. rent invested in SPY.</p>
+        <p class="hint">Symmetric comparison: the renter invests the down payment plus any monthly savings vs. owning; the buyer builds home equity and invests any monthly savings vs. renting. Both portfolios compound at the same expected return.</p>
       </section>
 
       <button type="submit" id="submit-btn">Calculate</button>
@@ -127,6 +143,21 @@
       </section>
 
       <section class="card result-card">
+        <h2>Loan Payoff</h2>
+        <div class="chart-wide">
+          <canvas id="balance-chart" aria-label="Loan balance over time chart"></canvas>
+          <div class="legend" id="balance-legend"></div>
+        </div>
+        <table class="breakdown-table">
+          <tbody>
+            <tr><td>Time to Payoff</td><td id="r-payoff"></td></tr>
+            <tr id="extra-time-row"><td>Time Saved by Extra Payments</td><td id="r-months-saved" class="positive"></td></tr>
+            <tr id="extra-savings-row"><td>Interest Saved by Extra Payments</td><td id="r-interest-saved" class="positive"></td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="card result-card">
         <h2>Total Cost Summary</h2>
         <table class="breakdown-table">
           <tbody>
@@ -149,7 +180,7 @@
             <tr><td>ZIP Code</td><td id="r-zip"></td></tr>
             <tr><td>5-Year CAGR</td><td id="r-cagr"></td></tr>
             <tr><td>Current Home Value</td><td id="r-hv-now"></td></tr>
-            <tr><td>Estimated Value in 30 Years</td><td id="r-hv-30"></td></tr>
+            <tr><td id="r-hv-label">Estimated Future Value</td><td id="r-hv-30"></td></tr>
             <tr><td>Net Gain / (Loss) vs. Cost</td><td id="r-net"></td></tr>
             <tr class="total-row"><td>Real Estate ROI</td><td id="r-roi"></td></tr>
           </tbody>
@@ -157,16 +188,23 @@
       </section>
 
       <section class="card result-card">
-        <h2>Rent vs. Buy — SPY Portfolio Schedule</h2>
-        <p class="hint">Assumes down payment invested at Year 0. Monthly difference (mortgage − rent) invested each month.</p>
+        <h2>Rent vs. Buy — Net Worth Comparison</h2>
+        <p class="verdict" id="r-breakeven"></p>
+        <div class="chart-wide">
+          <canvas id="networth-chart" aria-label="Buyer vs renter net worth chart"></canvas>
+          <div class="legend" id="networth-legend"></div>
+        </div>
+        <p class="hint">Buyer net worth = home value (net of sale costs) &minus; loan balance + invested surplus. Renter net worth = down payment + monthly savings invested at the expected market return.</p>
         <table class="schedule-table">
           <thead>
             <tr>
               <th>Year</th>
               <th>Rent/mo</th>
-              <th>Mortgage/mo</th>
-              <th>Investing/mo</th>
-              <th>SPY Portfolio Value</th>
+              <th>Own/mo</th>
+              <th>Renter Net Worth</th>
+              <th>Home Equity</th>
+              <th>Buyer Net Worth</th>
+              <th>Buy Advantage</th>
             </tr>
           </thead>
           <tbody id="r-rvb-body"></tbody>
