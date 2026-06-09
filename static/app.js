@@ -153,6 +153,10 @@ function runCalculation() {
     });
     const breakEven = findBreakEvenYear(snapshots);
 
+    // Reveal results before drawing: charts size themselves from
+    // parentElement.clientWidth, which is 0 while the container is hidden
+    resultsDiv.classList.remove("hidden");
+
     // --- Render PITI ---
     set("r-pi",   fmt(m.monthlyPI));
     set("r-tax",  fmt(m.monthlyTax));
@@ -268,8 +272,6 @@ function runCalculation() {
       `;
       tbody.appendChild(tr);
     });
-
-    resultsDiv.classList.remove("hidden");
 
   } catch (err) {
     errorBox.textContent = "Error: " + err.message;

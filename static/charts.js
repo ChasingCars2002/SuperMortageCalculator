@@ -54,7 +54,7 @@ function drawLineChart(canvasId, series, opts = {}) {
   if (!canvas) return;
   const ctx = canvas.getContext("2d");
   const dpr = window.devicePixelRatio || 1;
-  const width = canvas.parentElement ? canvas.parentElement.clientWidth - 8 : 600;
+  const width = Math.max(canvas.parentElement ? canvas.parentElement.clientWidth - 8 : 600, 280);
   const height = opts.height || 260;
   canvas.width = width * dpr;
   canvas.height = height * dpr;
