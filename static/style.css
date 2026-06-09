@@ -504,3 +504,41 @@ a:focus-visible {
   outline: 2px solid var(--primary);
   outline-offset: 2px;
 }
+
+/* Wide line-chart area */
+.chart-wide {
+  margin-bottom: 20px;
+}
+
+.chart-wide canvas {
+  width: 100%;
+  display: block;
+}
+
+.chart-wide .legend {
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 8px;
+  justify-content: center;
+}
+
+/* Rent vs. buy verdict banner */
+.verdict {
+  font-size: 0.95rem;
+  font-weight: 600;
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  background: var(--border);
+}
+
+.verdict.positive {
+  background: var(--positive-bg);
+  color: var(--positive) !important;
+}
+
+.verdict.negative {
+  background: var(--negative-bg);
+  color: var(--negative) !important;
+}
