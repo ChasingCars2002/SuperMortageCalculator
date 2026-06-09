@@ -17,7 +17,7 @@ function drawDonut(canvasId, segments, opts = {}) {
   const outerR = size / 2 - 4;
   const innerR = outerR * 0.58;
   const total = segments.reduce((s, seg) => s + seg.value, 0);
-  if (total === 0) return;
+  if (!total || isNaN(total)) return;
 
   let startAngle = -Math.PI / 2;
   segments.forEach(seg => {
@@ -31,15 +31,16 @@ function drawDonut(canvasId, segments, opts = {}) {
     startAngle += sliceAngle;
   });
 
-  // Center text
-  ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--text").trim() || "#0f172a";
+  // Center text — read theme colors from a single computed-style lookup
+  const rootStyles = getComputedStyle(document.documentElement);
+  ctx.fillStyle = rootStyles.getPropertyValue("--text").trim() || "#0f172a";
   ctx.font = "bold 16px Inter, system-ui, sans-serif";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   const formatted = "$" + Math.round(total).toLocaleString("en-US");
   ctx.fillText(formatted, cx, cy - 8);
   ctx.font = "11px Inter, system-ui, sans-serif";
-  ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--text-secondary").trim() || "#475569";
+  ctx.fillStyle = rootStyles.getPropertyValue("--text-secondary").trim() || "#475569";
   ctx.fillText("per month", cx, cy + 10);
 }
 
@@ -51,7 +52,9 @@ function renderLegend(containerId, segments) {
     .filter(seg => seg.value > 0)
     .map(seg => {
       const pct = total > 0 ? ((seg.value / total) * 100).toFixed(1) : "0.0";
-      const val = "$" + Number(seg.value).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      const val = typeof fmt === "function"
+        ? fmt(seg.value)
+        : "$" + Number(seg.value).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
       return `<div class="legend-item">
         <span class="legend-swatch" style="background:${seg.color}"></span>
         <span class="legend-label">${seg.label}</span>

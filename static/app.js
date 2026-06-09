@@ -64,10 +64,12 @@ function applyTheme(dark) {
   }
 })();
 
-themeToggle.addEventListener("click", () => {
-  const isDark = document.documentElement.getAttribute("data-theme") === "dark";
-  applyTheme(!isDark);
-});
+if (themeToggle) {
+  themeToggle.addEventListener("click", () => {
+    const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+    applyTheme(!isDark);
+  });
+}
 
 /* --- Debounced real-time calculation --- */
 let debounceTimer = null;
@@ -77,8 +79,10 @@ function debouncedCalc() {
   debounceTimer = setTimeout(runCalculation, 300);
 }
 
-// Listen for input changes on all form fields
-form.querySelectorAll("input").forEach(input => {
+// Listen for input changes on all form fields. Sliders already trigger
+// debouncedCalc via their own sync listeners above, so exclude range inputs
+// here to avoid double-binding the same handler.
+form.querySelectorAll("input:not([type=range])").forEach(input => {
   input.addEventListener("input", debouncedCalc);
 });
 
@@ -111,9 +115,18 @@ function runCalculation() {
     const monthlyRent = parseFloat(document.getElementById("monthly_rent").value || 0);
     const spyReturn = parseFloat(document.getElementById("spy_return").value || 10);
 
-    // Validate
-    if (isNaN(mortgageInputs.homePrice) || mortgageInputs.homePrice <= 0) return;
-    if (isNaN(mortgageInputs.loanTermYears) || mortgageInputs.loanTermYears < 1) return;
+    // Validate — if any required numeric input is missing or out of range
+    // (e.g. a field cleared mid-typing), hide stale results instead of
+    // rendering NaN into every cell and the donut chart.
+    const invalid =
+      isNaN(mortgageInputs.homePrice) || mortgageInputs.homePrice <= 0 ||
+      isNaN(mortgageInputs.downPaymentPct) || mortgageInputs.downPaymentPct < 0 || mortgageInputs.downPaymentPct > 100 ||
+      isNaN(mortgageInputs.loanTermYears) || mortgageInputs.loanTermYears < 1 ||
+      isNaN(mortgageInputs.annualInterestRate) || mortgageInputs.annualInterestRate < 0;
+    if (invalid) {
+      resultsDiv.classList.add("hidden");
+      return;
+    }
 
     // All calculations run client-side via calculator.js
     const m = calculateMortgage(mortgageInputs);
