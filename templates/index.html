@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Super Mortgage Calculator</title>
-  <link rel="stylesheet" href="/static/style.css" />
+  <link rel="stylesheet" href="/static/style.css?v=4" />
 </head>
 <body>
   <header>
@@ -38,7 +38,7 @@
             Down Payment (%)
             <input type="number" id="down_payment_pct" value="20" min="0" max="100" step="0.1" required />
             <div class="slider-row">
-              <input type="range" id="down_payment_pct_slider" min="0" max="100" step="0.5" value="20" aria-label="Down payment slider" />
+              <input type="range" id="down_payment_pct_slider" min="0" max="100" step="0.1" value="20" aria-label="Down payment slider" />
             </div>
           </label>
           <label>
@@ -120,7 +120,7 @@
             <tr><td>Property Tax</td><td id="r-tax"></td></tr>
             <tr><td>Homeowners Insurance</td><td id="r-ins"></td></tr>
             <tr><td>HOA</td><td id="r-hoa"></td></tr>
-            <tr class="pmi-row" id="pmi-row"><td>PMI</td><td id="r-pmi"></td></tr>
+            <tr id="pmi-row"><td>PMI</td><td id="r-pmi"></td></tr>
             <tr class="total-row"><td>Total Monthly Payment</td><td id="r-piti"></td></tr>
           </tbody>
         </table>
@@ -178,9 +178,9 @@
     <div id="error-box" class="hidden error-box"></div>
   </main>
 
-  <script src="/static/cagr-data.js"></script>
-  <script src="/static/calculator.js"></script>
-  <script src="/static/charts.js"></script>
-  <script src="/static/app.js"></script>
+  <script src="/static/cagr-data.js?v=4"></script>
+  <script src="/static/calculator.js?v=4"></script>
+  <script src="/static/charts.js?v=4"></script>
+  <script src="/static/app.js?v=4"></script>
 </body>
 </html>
